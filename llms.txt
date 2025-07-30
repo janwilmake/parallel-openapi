@@ -8,6 +8,8 @@
 
 **Contact:** Parallel Support <support@parallel.ai> (https://parallel.ai)
 
+[Full OpenAPI Spec](openapi.yaml)
+
 ## Search API
 
 The Parallel Search API provides AI-native web search capabilities optimized for agents, RAG systems, and research automation. Built on Parallel's custom web crawler and index, it takes flexible natural language objectives and returns LLM-ready ranked URLs with extended webpage excerpts.

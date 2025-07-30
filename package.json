@@ -1,8 +1,9 @@
 {
   "scripts": {
-    "build": "openapi-for-llms"
+    "build": "npx openapi-for-llms",
+    "v2": "npx openapi-for-llms && llms-txt-to-readme"
   },
   "devDependencies": {
-    "openapi-for-llms": "^0.0.7"
+    "openapi-for-llms": "^0.0.10"
   }
 }
