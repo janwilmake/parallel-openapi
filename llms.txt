@@ -1,0 +1,69 @@
+# Parallel API
+
+> Parallel API.
+
+**Version:** 0.1.2
+
+**Base URL:** https://api.parallel.ai
+
+**Contact:** Parallel Support <support@parallel.ai> (https://parallel.ai)
+
+## Search API
+
+The Parallel Search API provides AI-native web search capabilities optimized for agents, RAG systems, and research automation. Built on Parallel's custom web crawler and index, it takes flexible natural language objectives and returns LLM-ready ranked URLs with extended webpage excerpts.
+
+Unlike traditional search engines, the Search API is designed specifically for AI workflows. You can provide natural language objectives (like "Find recent AI research papers") along with optional keyword queries, and receive ranked results with substantial text excerpts ready for further processing. The API supports source policy controls to include or exclude specific domains, making it ideal for compliance-conscious applications.
+
+Currently available in alpha with "base" and "pro" processors, the Search API offers different performance and result quality tiers. Rate limits are set at 1,000 requests per hour to ensure consistent performance across all users. This API is particularly valuable for building AI agents that need to gather and synthesize information from across the web.
+
+- [POST /alpha/search](operations/web_search_alpha_search_post.yaml): Execute web search with AI-native results
+
+## Task API (Beta)
+
+The Task Group API enables efficient batch processing of hundreds or thousands of task runs with unified monitoring and intelligent failure handling. When your pipeline needs to process large volumes of independent Parallel Tasks, the Group API wraps operations into a single batch with real-time progress tracking and results streaming.
+
+Task Groups provide several key capabilities for large-scale operations: collective progress monitoring across all tasks in a group, real-time streaming of results as they become available, intelligent failure handling at the group level, and the ability to add new tasks dynamically to an existing group. These batch operations are ideal for bulk CRM enrichment, due diligence workflows, competitive intelligence gathering, or any scenario requiring processing of similar tasks at scale.
+
+The Group API supports server-sent events (SSE) for real-time updates, enabling you to monitor progress and collect results as they become available. This is particularly valuable for long-running batch jobs where you need visibility into completion status and want to process results immediately rather than waiting for the entire batch to finish.
+
+This API is currently in beta and subject to change. It's designed for production use cases requiring high-volume task processing with enterprise-grade monitoring and reliability features.
+
+- [POST /v1beta/tasks/groups](operations/tasks_taskgroups_post_v1beta_tasks_groups_post.yaml): Create a task group for batch processing
+- [GET /v1beta/tasks/groups/{taskgroup_id}](operations/tasks_taskgroups_get_v1beta_tasks_groups__taskgroup_id__get.yaml): Get aggregated status across all runs in a task group
+- [GET /v1beta/tasks/groups/{taskgroup_id}/runs](operations/tasks_taskgroups_runs_get_v1beta_tasks_groups__taskgroup_id__runs_get.yaml): Stream task runs and their results from a task group
+- [POST /v1beta/tasks/groups/{taskgroup_id}/runs](operations/tasks_taskgroups_runs_post_v1beta_tasks_groups__taskgroup_id__runs_post.yaml): Add multiple task runs to an existing task group
+- [GET /v1beta/tasks/groups/{taskgroup_id}/events](operations/tasks_sessions_events_get_v1beta_tasks_groups__taskgroup_id__events_get.yaml): Stream real-time events from a task group
+- [GET /v1beta/tasks/groups/{taskgroup_id}/runs/{run_id}](operations/tasks_taskgroups_runs_id_get_v1beta_tasks_groups__taskgroup_id__runs__run_id__get.yaml): Retrieve status of a specific run within a task group
+
+## Task API v1
+
+The Parallel Task API enables state-of-the-art web research at scale, transforming natural language queries into precise, schema-compliant web outputs. State your research task in natural language and Parallel will handle the heavy lifting - generating input/output schemas, finding relevant URLs, and extracting data in structured formats.
+
+The Task API supports a progression from simple queries to complex structured outputs. You can start with simple text-to-text transformations and scale up to structured JSON outputs with defined schemas. Choose from five processors (Lite, Base, Core, Pro, Ultra) to optimize for your specific needs around price, latency, and quality.
+
+Every Task Run result includes comprehensive "basis" information - citations, reasoning, excerpts, and confidence levels that support each output field. This transparency enables you to understand how the system arrived at its conclusions and assess the reliability of the output. The API enforces a rate limit of 2,000 requests per minute and follows a pay-per-use pricing model based on processor selection.
+
+- [POST /v1/tasks/runs](operations/tasks_runs_post_v1_tasks_runs_post.yaml): Create a new task run for structured web research
+- [GET /v1/tasks/runs/{run_id}](operations/tasks_runs_get_v1_tasks_runs__run_id__get.yaml): Retrieve current status of a task run
+- [GET /v1/tasks/runs/{run_id}/input](operations/tasks_runs_input_get_v1_tasks_runs__run_id__input_get.yaml): Retrieve the original input data for a task run
+- [GET /v1/tasks/runs/{run_id}/result](operations/tasks_runs_result_get_v1_tasks_runs__run_id__result_get.yaml): Retrieve task run results with citations and reasoning
+
+## Optional
+
+- [Search API operations](tags/Search API.yaml): The Parallel Search API provides AI-native web search capabilities optimized for agents, RAG systems, and research automation. Built on Parallel's custom web crawler and index, it takes flexible natural language objectives and returns LLM-ready ranked URLs with extended webpage excerpts.
+
+Unlike traditional search engines, the Search API is designed specifically for AI workflows. You can provide natural language objectives (like "Find recent AI research papers") along with optional keyword queries, and receive ranked results with substantial text excerpts ready for further processing. The API supports source policy controls to include or exclude specific domains, making it ideal for compliance-conscious applications.
+
+Currently available in alpha with "base" and "pro" processors, the Search API offers different performance and result quality tiers. Rate limits are set at 1,000 requests per hour to ensure consistent performance across all users. This API is particularly valuable for building AI agents that need to gather and synthesize information from across the web.
+- [Task API (Beta) operations](tags/Task API (Beta).yaml): The Task Group API enables efficient batch processing of hundreds or thousands of task runs with unified monitoring and intelligent failure handling. When your pipeline needs to process large volumes of independent Parallel Tasks, the Group API wraps operations into a single batch with real-time progress tracking and results streaming.
+
+Task Groups provide several key capabilities for large-scale operations: collective progress monitoring across all tasks in a group, real-time streaming of results as they become available, intelligent failure handling at the group level, and the ability to add new tasks dynamically to an existing group. These batch operations are ideal for bulk CRM enrichment, due diligence workflows, competitive intelligence gathering, or any scenario requiring processing of similar tasks at scale.
+
+The Group API supports server-sent events (SSE) for real-time updates, enabling you to monitor progress and collect results as they become available. This is particularly valuable for long-running batch jobs where you need visibility into completion status and want to process results immediately rather than waiting for the entire batch to finish.
+
+This API is currently in beta and subject to change. It's designed for production use cases requiring high-volume task processing with enterprise-grade monitoring and reliability features.
+- [Task API v1 operations](tags/Task API v1.yaml): The Parallel Task API enables state-of-the-art web research at scale, transforming natural language queries into precise, schema-compliant web outputs. State your research task in natural language and Parallel will handle the heavy lifting - generating input/output schemas, finding relevant URLs, and extracting data in structured formats.
+
+The Task API supports a progression from simple queries to complex structured outputs. You can start with simple text-to-text transformations and scale up to structured JSON outputs with defined schemas. Choose from five processors (Lite, Base, Core, Pro, Ultra) to optimize for your specific needs around price, latency, and quality.
+
+Every Task Run result includes comprehensive "basis" information - citations, reasoning, excerpts, and confidence levels that support each output field. This transparency enables you to understand how the system arrived at its conclusions and assess the reliability of the output. The API enforces a rate limit of 2,000 requests per minute and follows a pay-per-use pricing model based on processor selection.
