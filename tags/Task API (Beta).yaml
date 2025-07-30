@@ -1,0 +1,725 @@
+openapi: 3.1.0
+info:
+  title: Parallel API
+  description: Parallel API
+  contact:
+    name: Parallel Support
+    url: https://parallel.ai
+    email: support@parallel.ai
+  version: 0.1.2
+servers:
+  - url: https://api.parallel.ai
+    description: Parallel API
+paths:
+  /v1beta/tasks/groups:
+    post:
+      tags:
+        - Task API (Beta)
+      summary: Create a task group for batch processing
+      description: >-
+        Creates a new TaskGroup container to organize and track multiple task
+        runs collectively. Task Groups enable efficient batch processing of
+        hundreds or thousands of tasks with unified monitoring, intelligent
+        failure handling, and real-time results streaming. This is ideal for
+        large-scale operations like bulk CRM enrichment, due diligence
+        workflows, or competitive intelligence gathering where you need to
+        process many similar tasks and monitor their progress as a group.
+      operationId: tasks_taskgroups_post_v1beta_tasks_groups_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskGroupRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskGroupResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1beta/tasks/groups/{taskgroup_id}:
+    get:
+      tags:
+        - Task API (Beta)
+      summary: Get aggregated status across all runs in a task group
+      description: >-
+        Retrieves the current aggregated status and progress information for all
+        task runs within the specified TaskGroup. This includes the total number
+        of task runs, counts of runs by status (queued, running, completed,
+        failed, etc.), whether the group is still active, and a human-readable
+        status message. This endpoint provides a high-level overview of your
+        batch processing progress without needing to check individual task runs.
+      operationId: tasks_taskgroups_get_v1beta_tasks_groups__taskgroup_id__get
+      parameters:
+        - name: taskgroup_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Taskgroup Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskGroupResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1beta/tasks/groups/{taskgroup_id}/runs:
+    get:
+      tags:
+        - Task API (Beta)
+      summary: Stream task runs and their results from a task group
+      description: >-
+        Streams task runs from a TaskGroup in real-time, optionally including
+        their inputs and outputs as they become available. Task runs are
+        returned in the order they were added to the group, with completed tasks
+        including their full results and incomplete tasks showing current
+        status. This server-sent events endpoint enables real-time monitoring
+        and result collection for batch processing workflows. You can filter by
+        status and control whether to include input data and output results.
+      operationId: tasks_taskgroups_runs_get_v1beta_tasks_groups__taskgroup_id__runs_get
+      parameters:
+        - name: taskgroup_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Taskgroup Id
+        - name: last_event_id
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: 'null'
+            title: Last Event Id
+        - name: status
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - enum:
+                  - queued
+                  - action_required
+                  - running
+                  - completed
+                  - failed
+                  - cancelling
+                  - cancelled
+                type: string
+              - type: 'null'
+            title: Status
+        - name: include_input
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+            title: Include Input
+        - name: include_output
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: false
+            title: Include Output
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            text/event-stream:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/TaskRunEvent'
+                  - $ref: '#/components/schemas/ErrorEvent'
+                discriminator:
+                  propertyName: type
+                  mapping:
+                    task_run.state: '#/components/schemas/TaskRunEvent'
+                    error: '#/components/schemas/ErrorEvent'
+                title: >-
+                  Response 200 Tasks Taskgroups Runs Get V1Beta Tasks Groups 
+                  Taskgroup Id  Runs Get
+              example:
+                type: task_run.state
+                event_id: '123'
+                run:
+                  run_id: trun_9907962f83aa4d9d98fd7f4bf745d654
+                  status: completed
+                  is_active: false
+                  processor: core
+                  metadata:
+                    my_key: my_value
+                  created_at: '2025-04-23T20:21:48.037943Z'
+                  modified_at: '2025-04-23T20:21:48.037943Z'
+                input:
+                  input:
+                    country: France
+                    year: 2023
+                  processor: core
+                  metadata:
+                    my_key: my_value
+        '404':
+          description: TaskGroup not found
+          content:
+            application/json:
+              example:
+                type: error
+                error:
+                  ref_id: fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                  message: TaskGroup not found
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+        - Task API (Beta)
+      summary: Add multiple task runs to an existing task group
+      description: >-
+        Adds multiple new task runs to an existing TaskGroup for batch
+        processing. You can specify a default task specification that applies to
+        all runs, then provide individual inputs and processor selections for
+        each task. This allows you to efficiently queue hundreds or thousands of
+        similar tasks while maintaining the ability to customize inputs and
+        processors per task. The runs are added immediately and begin processing
+        asynchronously.
+      operationId: tasks_taskgroups_runs_post_v1beta_tasks_groups__taskgroup_id__runs_post
+      parameters:
+        - name: taskgroup_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Taskgroup Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TaskGroupRunRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskGroupRunResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1beta/tasks/groups/{taskgroup_id}/events:
+    get:
+      tags:
+        - Task API (Beta)
+      summary: Stream real-time events from a task group
+      description: >-
+        Streams real-time events from a TaskGroup including status updates and
+        run completions via server-sent events. This endpoint provides live
+        updates about group-level status changes and individual task run
+        completions, enabling real-time monitoring of batch processing
+        operations. The connection remains open for up to 10 minutes as long as
+        at least one run in the TaskGroup is active, and supports resumable
+        streaming using event IDs for reliable event delivery.
+      operationId: tasks_sessions_events_get_v1beta_tasks_groups__taskgroup_id__events_get
+      parameters:
+        - name: taskgroup_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Taskgroup Id
+        - name: last_event_id
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: 'null'
+            title: Last Event Id
+        - name: timeout
+          in: query
+          required: false
+          schema:
+            anyOf:
+              - type: number
+              - type: 'null'
+            title: Timeout
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            text/event-stream:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/TaskGroupStatusEvent'
+                  - $ref: '#/components/schemas/TaskRunEvent'
+                  - $ref: '#/components/schemas/ErrorEvent'
+                discriminator:
+                  propertyName: type
+                  mapping:
+                    task_group_status: '#/components/schemas/TaskGroupStatusEvent'
+                    task_run.state: '#/components/schemas/TaskRunEvent'
+                    error: '#/components/schemas/ErrorEvent'
+                title: >-
+                  Response 200 Tasks Sessions Events Get V1Beta Tasks Groups 
+                  Taskgroup Id  Events Get
+              example:
+                type: task_group_status
+                event_id: '123'
+                status:
+                  num_task_runs: 1
+                  task_run_status_counts:
+                    completed: 1
+                  is_active: false
+                  status_message: ''
+                  modified_at: '2025-04-23T20:21:48.037943Z'
+        '404':
+          description: TaskGroup not found
+          content:
+            application/json:
+              example:
+                type: error
+                error:
+                  ref_id: fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                  message: TaskGroup not found
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /v1beta/tasks/groups/{taskgroup_id}/runs/{run_id}:
+    get:
+      tags:
+        - Task API (Beta)
+      summary: Retrieve status of a specific run within a task group
+      description: >-
+        Retrieves the current status and metadata for a specific task run within
+        a TaskGroup by its run_id. This endpoint provides the same information
+        as the standard task run status endpoint but is scoped within the
+        context of a task group. The actual task results are available through
+        the separate result endpoints once the task is completed. This is useful
+        for checking the status of individual tasks within a batch processing
+        operation.
+      operationId: >-
+        tasks_taskgroups_runs_id_get_v1beta_tasks_groups__taskgroup_id__runs__run_id__get
+      parameters:
+        - name: taskgroup_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Taskgroup Id
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Run Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskRun'
+              example:
+                run_id: trun_9907962f83aa4d9d98fd7f4bf745d654
+                status: running
+                is_active: true
+                processor: core
+                metadata:
+                  my_key: my_value
+                created_at: '2025-04-23T20:21:48.037943Z'
+                modified_at: '2025-04-23T20:21:48.037943Z'
+        '401':
+          description: 'Unauthorized: invalid or missing credentials'
+          content:
+            application/json:
+              example:
+                type: error
+                error:
+                  ref_id: fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                  message: 'Unauthorized: invalid or missing credentials'
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Run id not found
+          content:
+            application/json:
+              example:
+                type: error
+                error:
+                  ref_id: fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                  message: Run id not found
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Request validation error
+          content:
+            application/json:
+              example:
+                type: error
+                error:
+                  ref_id: fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                  message: Request validation error
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    CreateTaskGroupRequest:
+      properties:
+        metadata:
+          anyOf:
+            - additionalProperties:
+                anyOf:
+                  - type: string
+                  - type: integer
+                  - type: number
+                  - type: boolean
+              type: object
+            - type: 'null'
+          title: Metadata
+          description: User-provided metadata stored with the task group.
+      type: object
+      title: CreateTaskGroupRequest
+      description: Request to create a task group.
+    ErrorEvent:
+      properties:
+        type:
+          type: string
+          enum:
+            - error
+          const: error
+          title: Type
+          description: Event type; always 'error'.
+          default: error
+        error:
+          allOf:
+            - $ref: '#/components/schemas/Error'
+          description: Error.
+      type: object
+      required:
+        - error
+      title: ErrorEvent
+      description: Event indicating an error.
+    ErrorResponse:
+      properties:
+        type:
+          type: string
+          enum:
+            - error
+          const: error
+          title: Type
+          description: Always 'error'.
+          default: error
+        error:
+          allOf:
+            - $ref: '#/components/schemas/Error'
+          description: Error.
+      type: object
+      required:
+        - error
+      title: ErrorResponse
+      description: Response object used for non-200 status codes.
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    TaskGroupResponse:
+      properties:
+        taskgroup_id:
+          type: string
+          title: Taskgroup Id
+          description: ID of the group.
+        metadata:
+          anyOf:
+            - additionalProperties:
+                anyOf:
+                  - type: string
+                  - type: integer
+                  - type: number
+                  - type: boolean
+              type: object
+            - type: 'null'
+          title: Metadata
+          description: User-provided metadata stored with the group.
+        status:
+          allOf:
+            - $ref: '#/components/schemas/TaskGroupStatus'
+          description: Status of the group.
+        created_at:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Created At
+          description: Timestamp of the creation of the group, as an RFC 3339 string.
+          examples:
+            - '2025-04-24T18:56:22.513132Z'
+      type: object
+      required:
+        - taskgroup_id
+        - status
+        - created_at
+      title: TaskGroupResponse
+      description: Response object for a task group, including its status and metadata.
+    TaskGroupRunRequest:
+      properties:
+        default_task_spec:
+          anyOf:
+            - $ref: '#/components/schemas/TaskSpec'
+            - type: 'null'
+          description: >-
+            Default task spec to use for the runs. If task_spec is specified in
+            a run, it overrides this default.
+        inputs:
+          items:
+            $ref: '#/components/schemas/TaskRunInput-Input'
+          type: array
+          title: Inputs
+          description: List of task runs to execute.
+      type: object
+      required:
+        - inputs
+      title: TaskGroupRunRequest
+      description: Request to initiate new task runs in a task group.
+    TaskGroupRunResponse:
+      properties:
+        status:
+          allOf:
+            - $ref: '#/components/schemas/TaskGroupStatus'
+          description: Status of the group.
+        run_ids:
+          items:
+            type: string
+          type: array
+          title: Run Ids
+          description: IDs of the newly created runs.
+        run_cursor:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Run Cursor
+          description: >-
+            Cursor for these runs in the run stream at
+            taskgroup/runs?last_event_id=<run_cursor>. Empty for the first runs
+            in the group.
+        event_cursor:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Event Cursor
+          description: >-
+            Cursor for these runs in the event stream at
+            taskgroup/events?last_event_id=<event_cursor>. Empty for the first
+            runs in the group.
+      type: object
+      required:
+        - status
+        - run_ids
+        - run_cursor
+        - event_cursor
+      title: TaskGroupRunResponse
+      description: Response from adding new task runs to a task group.
+    TaskGroupStatusEvent:
+      properties:
+        type:
+          type: string
+          enum:
+            - task_group_status
+          const: task_group_status
+          title: Type
+          description: Event type; always 'task_group_status'.
+          default: task_group_status
+        event_id:
+          type: string
+          title: Event Id
+          description: Cursor to resume the event stream.
+        status:
+          allOf:
+            - $ref: '#/components/schemas/TaskGroupStatus'
+          description: Task group status object.
+      type: object
+      required:
+        - event_id
+        - status
+      title: TaskGroupStatusEvent
+      description: Event indicating an update to group status.
+    TaskRun:
+      properties:
+        run_id:
+          type: string
+          title: Run Id
+          description: ID of the task run.
+          examples:
+            - trun_e0083b6aac0544eb8686e8d2a76533d2
+        status:
+          type: string
+          enum:
+            - queued
+            - action_required
+            - running
+            - completed
+            - failed
+            - cancelling
+            - cancelled
+          title: Status
+          description: Status of the run.
+          examples:
+            - queued
+            - action_required
+            - running
+            - completed
+            - failed
+            - cancelling
+            - cancelled
+        is_active:
+          type: boolean
+          title: Is Active
+          description: >-
+            Whether the run is currently active, i.e. status is one of
+            {'cancelling', 'queued', 'running'}.
+        warnings:
+          anyOf:
+            - items:
+                $ref: '#/components/schemas/shapley__search__tasks__api_v1__Warning'
+              type: array
+            - type: 'null'
+          title: Warnings
+          description: Warnings for the run, if any.
+          examples:
+            - []
+        error:
+          anyOf:
+            - $ref: '#/components/schemas/Error'
+            - type: 'null'
+          description: Error for the run, present only if status is 'failed'.
+        processor:
+          type: string
+          title: Processor
+          description: Processor used for the run.
+          examples:
+            - base
+        metadata:
+          anyOf:
+            - additionalProperties:
+                anyOf:
+                  - type: string
+                  - type: integer
+                  - type: number
+                  - type: boolean
+              type: object
+            - type: 'null'
+          title: Metadata
+          description: User-provided metadata stored with the run.
+          examples:
+            - {}
+        taskgroup_id:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Taskgroup Id
+          description: ID of the taskgroup to which the run belongs.
+        created_at:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Created At
+          description: Timestamp of the creation of the task, as an RFC 3339 string.
+          examples:
+            - '2025-04-24T18:56:22.513132Z'
+        modified_at:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Modified At
+          description: >-
+            Timestamp of the last modification to the task, as an RFC 3339
+            string.
+          examples:
+            - '2025-04-24T18:56:22.513132Z'
+      type: object
+      required:
+        - run_id
+        - status
+        - is_active
+        - processor
+        - created_at
+        - modified_at
+      title: TaskRun
+      description: Status of a task run.
+    TaskRunEvent:
+      properties:
+        type:
+          type: string
+          enum:
+            - task_run.state
+          const: task_run.state
+          title: Type
+          description: Event type; always 'task_run.state'.
+          default: task_run.state
+        event_id:
+          type: string
+          title: Event Id
+          description: Cursor to resume the event stream.
+        run:
+          allOf:
+            - $ref: '#/components/schemas/TaskRun'
+          description: Task run object.
+        input:
+          anyOf:
+            - $ref: '#/components/schemas/TaskRunInput-Output'
+            - type: 'null'
+          description: Input to the run; included only if requested.
+        output:
+          anyOf:
+            - oneOf:
+                - $ref: '#/components/schemas/TaskRunTextOutput'
+                - $ref: '#/components/schemas/TaskRunJsonOutput'
+              discriminator:
+                propertyName: type
+                mapping:
+                  json: '#/components/schemas/TaskRunJsonOutput'
+                  text: '#/components/schemas/TaskRunTextOutput'
+            - type: 'null'
+          title: Output
+          description: >-
+            Output from the run; included only if requested and if status ==
+            `completed`.
+      type: object
+      required:
+        - event_id
+        - run
+      title: TaskRunEvent
+      description: |-
+        Event when a task run transitions to a non-active status.
+
+        May indicate completion, cancellation, or failure.

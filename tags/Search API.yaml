@@ -1,0 +1,154 @@
+openapi: 3.1.0
+info:
+  title: Parallel API
+  description: Parallel API
+  contact:
+    name: Parallel Support
+    url: https://parallel.ai
+    email: support@parallel.ai
+  version: 0.1.2
+servers:
+  - url: https://api.parallel.ai
+    description: Parallel API
+paths:
+  /alpha/search:
+    post:
+      tags:
+        - Search API
+      summary: Execute web search with AI-native results
+      description: >-
+        Searches the web using natural language objectives and returns ranked
+        URLs with extended webpage excerpts. Built on Parallel's custom web
+        crawler and index, this API takes flexible inputs (search objective
+        and/or search queries) and returns LLM-ready ranked URLs with extended
+        webpage excerpts. The Search API is optimized for AI agents and RAG
+        systems requiring high-quality, relevant web content.
+      operationId: web_search_alpha_search_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SearchResponse'
+              example:
+                search_id: search_fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                results:
+                  - url: https://www.example.com
+                    title: Sample webpage title
+                    excerpts:
+                      - Sample excerpt 1
+                      - Sample excerpt 2
+        '422':
+          description: Request validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                type: error
+                error:
+                  ref_id: search_fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                  message: Request validation error
+components:
+  schemas:
+    ErrorResponse:
+      properties:
+        type:
+          type: string
+          enum:
+            - error
+          const: error
+          title: Type
+          description: Always 'error'.
+          default: error
+        error:
+          allOf:
+            - $ref: '#/components/schemas/Error'
+          description: Error.
+      type: object
+      required:
+        - error
+      title: ErrorResponse
+      description: Response object used for non-200 status codes.
+    SearchRequest:
+      properties:
+        objective:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Objective
+          description: >-
+            Natural-language description of what the web search is trying to
+            find. May include guidance about preferred sources or freshness. At
+            least one of objective or search_queries must be provided.
+        search_queries:
+          anyOf:
+            - items:
+                type: string
+              type: array
+            - type: 'null'
+          title: Search Queries
+          description: >-
+            Optional list of traditional keyword search queries to guide the
+            search. May contain search operators. At least one of objective or
+            search_queries must be provided.
+        processor:
+          type: string
+          enum:
+            - base
+            - pro
+          title: Processor
+          description: Search processor.
+          default: base
+        max_results:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: Max Results
+          description: >-
+            Upper bound on the number of results to return. May be limited by
+            the processor. Defaults to 10 if not provided.
+          default: 10
+        max_chars_per_result:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: Max Chars Per Result
+          description: >-
+            Upper bound on the number of characters to include in excerpts for
+            each search result.
+        source_policy:
+          anyOf:
+            - $ref: '#/components/schemas/SourcePolicy'
+            - type: 'null'
+          description: >-
+            Optional source policy governing preferred and disallowed domains in
+            search results.
+      type: object
+      title: SearchRequest
+      description: Base class for search queries.
+    SearchResponse:
+      properties:
+        search_id:
+          type: string
+          title: Search Id
+          description: 'Search ID. Example: `search_cad0a6d2-dec0-46bd-95ae-900527d880e7`'
+        results:
+          items:
+            $ref: '#/components/schemas/WebSearchResult'
+          type: array
+          title: Results
+          description: A list of WebSearchResult objects, ordered by decreasing relevance.
+      type: object
+      required:
+        - search_id
+        - results
+      title: SearchResponse
+      description: Output for the Search API.

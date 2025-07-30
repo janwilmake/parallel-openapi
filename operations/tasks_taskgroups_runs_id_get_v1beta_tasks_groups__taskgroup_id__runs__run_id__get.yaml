@@ -1,0 +1,350 @@
+openapi: 3.1.0
+info:
+  title: Parallel API
+  description: Parallel API
+  contact:
+    name: Parallel Support
+    url: https://parallel.ai
+    email: support@parallel.ai
+  version: 0.1.2
+servers:
+  - url: https://api.parallel.ai
+    description: Parallel API
+paths:
+  /v1beta/tasks/groups/{taskgroup_id}/runs/{run_id}:
+    get:
+      tags:
+        - Task API (Beta)
+      summary: Retrieve status of a specific run within a task group
+      description: >-
+        Retrieves the current status and metadata for a specific task run within
+        a TaskGroup by its run_id. This endpoint provides the same information
+        as the standard task run status endpoint but is scoped within the
+        context of a task group. The actual task results are available through
+        the separate result endpoints once the task is completed. This is useful
+        for checking the status of individual tasks within a batch processing
+        operation.
+      operationId: >-
+        tasks_taskgroups_runs_id_get_v1beta_tasks_groups__taskgroup_id__runs__run_id__get
+      parameters:
+        - name: taskgroup_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Taskgroup Id
+        - name: run_id
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Run Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                properties:
+                  run_id:
+                    type: string
+                    title: Run Id
+                    description: ID of the task run.
+                    examples:
+                      - trun_e0083b6aac0544eb8686e8d2a76533d2
+                  status:
+                    type: string
+                    enum:
+                      - queued
+                      - action_required
+                      - running
+                      - completed
+                      - failed
+                      - cancelling
+                      - cancelled
+                    title: Status
+                    description: Status of the run.
+                    examples:
+                      - queued
+                      - action_required
+                      - running
+                      - completed
+                      - failed
+                      - cancelling
+                      - cancelled
+                  is_active:
+                    type: boolean
+                    title: Is Active
+                    description: >-
+                      Whether the run is currently active, i.e. status is one of
+                      {'cancelling', 'queued', 'running'}.
+                  warnings:
+                    anyOf:
+                      - items:
+                          properties:
+                            type:
+                              type: string
+                              title: Type
+                              description: >-
+                                Type of warning. Note that adding new warning
+                                types is considered a backward-compatible
+                                change.
+                              examples:
+                                - spec_validation_warning
+                                - input_validation_warning
+                            message:
+                              type: string
+                              title: Message
+                              description: Human-readable message.
+                            detail:
+                              anyOf:
+                                - type: object
+                                - type: 'null'
+                              title: Detail
+                              description: Optional detail supporting the warning.
+                          type: object
+                          required:
+                            - type
+                            - message
+                          title: Warning
+                          description: Human-readable message for a task.
+                        type: array
+                      - type: 'null'
+                    title: Warnings
+                    description: Warnings for the run, if any.
+                    examples:
+                      - []
+                  error:
+                    anyOf:
+                      - properties:
+                          ref_id:
+                            type: string
+                            title: Ref Id
+                            description: Reference ID for the error.
+                          message:
+                            type: string
+                            title: Message
+                            description: Human-readable message.
+                          detail:
+                            anyOf:
+                              - type: object
+                              - type: 'null'
+                            title: Detail
+                            description: Optional detail supporting the error.
+                        type: object
+                        required:
+                          - ref_id
+                          - message
+                        title: Error
+                        description: An error message.
+                      - type: 'null'
+                    description: Error for the run, present only if status is 'failed'.
+                  processor:
+                    type: string
+                    title: Processor
+                    description: Processor used for the run.
+                    examples:
+                      - base
+                  metadata:
+                    anyOf:
+                      - additionalProperties:
+                          anyOf:
+                            - type: string
+                            - type: integer
+                            - type: number
+                            - type: boolean
+                        type: object
+                      - type: 'null'
+                    title: Metadata
+                    description: User-provided metadata stored with the run.
+                    examples:
+                      - {}
+                  taskgroup_id:
+                    anyOf:
+                      - type: string
+                      - type: 'null'
+                    title: Taskgroup Id
+                    description: ID of the taskgroup to which the run belongs.
+                  created_at:
+                    anyOf:
+                      - type: string
+                      - type: 'null'
+                    title: Created At
+                    description: >-
+                      Timestamp of the creation of the task, as an RFC 3339
+                      string.
+                    examples:
+                      - '2025-04-24T18:56:22.513132Z'
+                  modified_at:
+                    anyOf:
+                      - type: string
+                      - type: 'null'
+                    title: Modified At
+                    description: >-
+                      Timestamp of the last modification to the task, as an RFC
+                      3339 string.
+                    examples:
+                      - '2025-04-24T18:56:22.513132Z'
+                type: object
+                required:
+                  - run_id
+                  - status
+                  - is_active
+                  - processor
+                  - created_at
+                  - modified_at
+                title: TaskRun
+                description: Status of a task run.
+              example:
+                run_id: trun_9907962f83aa4d9d98fd7f4bf745d654
+                status: running
+                is_active: true
+                processor: core
+                metadata:
+                  my_key: my_value
+                created_at: '2025-04-23T20:21:48.037943Z'
+                modified_at: '2025-04-23T20:21:48.037943Z'
+        '401':
+          description: 'Unauthorized: invalid or missing credentials'
+          content:
+            application/json:
+              example:
+                type: error
+                error:
+                  ref_id: fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                  message: 'Unauthorized: invalid or missing credentials'
+              schema:
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - error
+                    const: error
+                    title: Type
+                    description: Always 'error'.
+                    default: error
+                  error:
+                    allOf:
+                      - properties:
+                          ref_id:
+                            type: string
+                            title: Ref Id
+                            description: Reference ID for the error.
+                          message:
+                            type: string
+                            title: Message
+                            description: Human-readable message.
+                          detail:
+                            anyOf:
+                              - type: object
+                              - type: 'null'
+                            title: Detail
+                            description: Optional detail supporting the error.
+                        type: object
+                        required:
+                          - ref_id
+                          - message
+                        title: Error
+                        description: An error message.
+                    description: Error.
+                type: object
+                required:
+                  - error
+                title: ErrorResponse
+                description: Response object used for non-200 status codes.
+        '404':
+          description: Run id not found
+          content:
+            application/json:
+              example:
+                type: error
+                error:
+                  ref_id: fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                  message: Run id not found
+              schema:
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - error
+                    const: error
+                    title: Type
+                    description: Always 'error'.
+                    default: error
+                  error:
+                    allOf:
+                      - properties:
+                          ref_id:
+                            type: string
+                            title: Ref Id
+                            description: Reference ID for the error.
+                          message:
+                            type: string
+                            title: Message
+                            description: Human-readable message.
+                          detail:
+                            anyOf:
+                              - type: object
+                              - type: 'null'
+                            title: Detail
+                            description: Optional detail supporting the error.
+                        type: object
+                        required:
+                          - ref_id
+                          - message
+                        title: Error
+                        description: An error message.
+                    description: Error.
+                type: object
+                required:
+                  - error
+                title: ErrorResponse
+                description: Response object used for non-200 status codes.
+        '422':
+          description: Request validation error
+          content:
+            application/json:
+              example:
+                type: error
+                error:
+                  ref_id: fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                  message: Request validation error
+              schema:
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - error
+                    const: error
+                    title: Type
+                    description: Always 'error'.
+                    default: error
+                  error:
+                    allOf:
+                      - properties:
+                          ref_id:
+                            type: string
+                            title: Ref Id
+                            description: Reference ID for the error.
+                          message:
+                            type: string
+                            title: Message
+                            description: Human-readable message.
+                          detail:
+                            anyOf:
+                              - type: object
+                              - type: 'null'
+                            title: Detail
+                            description: Optional detail supporting the error.
+                        type: object
+                        required:
+                          - ref_id
+                          - message
+                        title: Error
+                        description: An error message.
+                    description: Error.
+                type: object
+                required:
+                  - error
+                title: ErrorResponse
+                description: Response object used for non-200 status codes.

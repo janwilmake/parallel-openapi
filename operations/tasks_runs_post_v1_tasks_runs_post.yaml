@@ -1,0 +1,662 @@
+openapi: 3.1.0
+info:
+  title: Parallel API
+  description: Parallel API
+  contact:
+    name: Parallel Support
+    url: https://parallel.ai
+    email: support@parallel.ai
+  version: 0.1.2
+servers:
+  - url: https://api.parallel.ai
+    description: Parallel API
+paths:
+  /v1/tasks/runs:
+    post:
+      tags:
+        - Task API v1
+      summary: Create a new task run for structured web research
+      description: >-
+        Initiates a task run that transforms natural language queries into
+        precise, schema-compliant web outputs. The task run is created
+        immediately in 'queued' status and begins processing asynchronously. You
+        can specify input data (string or JSON), select a processor (lite, base,
+        core, pro, ultra), and define structured output schemas. Beta features
+        like Source Policy, MCP servers, and webhooks can be enabled by setting
+        the 'parallel-beta' header with appropriate values.
+      operationId: tasks_runs_post_v1_tasks_runs_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                task_spec:
+                  anyOf:
+                    - properties:
+                        output_schema:
+                          anyOf:
+                            - properties:
+                                json_schema:
+                                  type: object
+                                  title: Json Schema
+                                  description: >-
+                                    A JSON Schema object. Only a subset of JSON
+                                    Schema is supported.
+                                  examples:
+                                    - additionalProperties: false
+                                      properties:
+                                        gdp:
+                                          description: >-
+                                            GDP in USD for the year, formatted like
+                                            '$3.1 trillion (2023)'
+                                          type: string
+                                      required:
+                                        - gdp
+                                      type: object
+                                type:
+                                  type: string
+                                  enum:
+                                    - json
+                                  const: json
+                                  title: Type
+                                  description: >-
+                                    The type of schema being defined. Always
+                                    `json`.
+                                  default: json
+                              type: object
+                              required:
+                                - json_schema
+                              title: JsonSchema
+                              description: JSON schema for a task input or output.
+                            - properties:
+                                description:
+                                  type: string
+                                  title: Description
+                                  description: >-
+                                    A text description of the desired output
+                                    from the task.
+                                  examples:
+                                    - >-
+                                      GDP in USD for the year, formatted like
+                                      '$3.1 trillion (2023)'
+                                type:
+                                  type: string
+                                  enum:
+                                    - text
+                                  const: text
+                                  title: Type
+                                  description: >-
+                                    The type of schema being defined. Always
+                                    `text`.
+                                  default: text
+                              type: object
+                              required:
+                                - description
+                              title: TextSchema
+                              description: Text description for a task input or output.
+                            - properties:
+                                type:
+                                  type: string
+                                  enum:
+                                    - auto
+                                  const: auto
+                                  title: Type
+                                  description: >-
+                                    The type of schema being defined. Always
+                                    `auto`.
+                                  default: auto
+                              type: object
+                              title: AutoSchema
+                              description: Auto schema for a task input or output.
+                            - type: string
+                          title: Output Schema
+                          description: >-
+                            JSON schema or text fully describing the desired
+                            output from the task. Descriptions of output fields
+                            will determine the form and content of the response.
+                            A bare string is equivalent to a text schema with
+                            the same description.
+                        input_schema:
+                          anyOf:
+                            - type: string
+                            - properties:
+                                json_schema:
+                                  type: object
+                                  title: Json Schema
+                                  description: >-
+                                    A JSON Schema object. Only a subset of JSON
+                                    Schema is supported.
+                                  examples:
+                                    - additionalProperties: false
+                                      properties:
+                                        gdp:
+                                          description: >-
+                                            GDP in USD for the year, formatted like
+                                            '$3.1 trillion (2023)'
+                                          type: string
+                                      required:
+                                        - gdp
+                                      type: object
+                                type:
+                                  type: string
+                                  enum:
+                                    - json
+                                  const: json
+                                  title: Type
+                                  description: >-
+                                    The type of schema being defined. Always
+                                    `json`.
+                                  default: json
+                              type: object
+                              required:
+                                - json_schema
+                              title: JsonSchema
+                              description: JSON schema for a task input or output.
+                            - properties:
+                                description:
+                                  type: string
+                                  title: Description
+                                  description: >-
+                                    A text description of the desired output
+                                    from the task.
+                                  examples:
+                                    - >-
+                                      GDP in USD for the year, formatted like
+                                      '$3.1 trillion (2023)'
+                                type:
+                                  type: string
+                                  enum:
+                                    - text
+                                  const: text
+                                  title: Type
+                                  description: >-
+                                    The type of schema being defined. Always
+                                    `text`.
+                                  default: text
+                              type: object
+                              required:
+                                - description
+                              title: TextSchema
+                              description: Text description for a task input or output.
+                            - type: 'null'
+                          title: Input Schema
+                          description: >-
+                            Optional JSON schema or text description of expected
+                            input to the task. A bare string is equivalent to a
+                            text schema with the same description.
+                      type: object
+                      required:
+                        - output_schema
+                      title: TaskSpec
+                      description: >-
+                        Specification for a task.
+
+
+                        For convenience we allow bare strings as input or output
+                        schemas, which is
+
+                        equivalent to a text schema with the same description.
+
+
+                        NOTE: Ordering of args impacts docs so please be careful
+                        when
+
+                        changing the order.
+                    - type: 'null'
+                  description: Task specification.
+                input:
+                  anyOf:
+                    - type: string
+                    - type: object
+                  title: Input
+                  description: Input to the task, either text or a JSON object.
+                  examples:
+                    - What was the GDP of France in 2023?
+                    - country: France
+                      year: 2023
+                processor:
+                  type: string
+                  title: Processor
+                  description: Processor to use for the task.
+                  examples:
+                    - base
+                metadata:
+                  anyOf:
+                    - additionalProperties:
+                        anyOf:
+                          - type: string
+                          - type: integer
+                          - type: number
+                          - type: boolean
+                      type: object
+                    - type: 'null'
+                  title: Metadata
+                  description: >-
+                    User-provided metadata stored with the run. Keys and values
+                    must be strings with a maximum length of 16 and 512
+                    characters respectively.
+              type: object
+              required:
+                - input
+                - processor
+              title: TaskRunInput
+              description: Request to run a task.
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                properties:
+                  run_id:
+                    type: string
+                    title: Run Id
+                    description: ID of the task run.
+                    examples:
+                      - trun_e0083b6aac0544eb8686e8d2a76533d2
+                  status:
+                    type: string
+                    enum:
+                      - queued
+                      - action_required
+                      - running
+                      - completed
+                      - failed
+                      - cancelling
+                      - cancelled
+                    title: Status
+                    description: Status of the run.
+                    examples:
+                      - queued
+                      - action_required
+                      - running
+                      - completed
+                      - failed
+                      - cancelling
+                      - cancelled
+                  is_active:
+                    type: boolean
+                    title: Is Active
+                    description: >-
+                      Whether the run is currently active, i.e. status is one of
+                      {'cancelling', 'queued', 'running'}.
+                  warnings:
+                    anyOf:
+                      - items:
+                          properties:
+                            type:
+                              type: string
+                              title: Type
+                              description: >-
+                                Type of warning. Note that adding new warning
+                                types is considered a backward-compatible
+                                change.
+                              examples:
+                                - spec_validation_warning
+                                - input_validation_warning
+                            message:
+                              type: string
+                              title: Message
+                              description: Human-readable message.
+                            detail:
+                              anyOf:
+                                - type: object
+                                - type: 'null'
+                              title: Detail
+                              description: Optional detail supporting the warning.
+                          type: object
+                          required:
+                            - type
+                            - message
+                          title: Warning
+                          description: Human-readable message for a task.
+                        type: array
+                      - type: 'null'
+                    title: Warnings
+                    description: Warnings for the run, if any.
+                    examples:
+                      - []
+                  error:
+                    anyOf:
+                      - properties:
+                          ref_id:
+                            type: string
+                            title: Ref Id
+                            description: Reference ID for the error.
+                          message:
+                            type: string
+                            title: Message
+                            description: Human-readable message.
+                          detail:
+                            anyOf:
+                              - type: object
+                              - type: 'null'
+                            title: Detail
+                            description: Optional detail supporting the error.
+                        type: object
+                        required:
+                          - ref_id
+                          - message
+                        title: Error
+                        description: An error message.
+                      - type: 'null'
+                    description: Error for the run, present only if status is 'failed'.
+                  processor:
+                    type: string
+                    title: Processor
+                    description: Processor used for the run.
+                    examples:
+                      - base
+                  metadata:
+                    anyOf:
+                      - additionalProperties:
+                          anyOf:
+                            - type: string
+                            - type: integer
+                            - type: number
+                            - type: boolean
+                        type: object
+                      - type: 'null'
+                    title: Metadata
+                    description: User-provided metadata stored with the run.
+                    examples:
+                      - {}
+                  taskgroup_id:
+                    anyOf:
+                      - type: string
+                      - type: 'null'
+                    title: Taskgroup Id
+                    description: ID of the taskgroup to which the run belongs.
+                  created_at:
+                    anyOf:
+                      - type: string
+                      - type: 'null'
+                    title: Created At
+                    description: >-
+                      Timestamp of the creation of the task, as an RFC 3339
+                      string.
+                    examples:
+                      - '2025-04-24T18:56:22.513132Z'
+                  modified_at:
+                    anyOf:
+                      - type: string
+                      - type: 'null'
+                    title: Modified At
+                    description: >-
+                      Timestamp of the last modification to the task, as an RFC
+                      3339 string.
+                    examples:
+                      - '2025-04-24T18:56:22.513132Z'
+                type: object
+                required:
+                  - run_id
+                  - status
+                  - is_active
+                  - processor
+                  - created_at
+                  - modified_at
+                title: TaskRun
+                description: Status of a task run.
+              example:
+                run_id: trun_9907962f83aa4d9d98fd7f4bf745d654
+                status: queued
+                is_active: true
+                processor: core
+                metadata:
+                  my_key: my_value
+                created_at: '2025-04-23T20:21:48.037943Z'
+                modified_at: '2025-04-23T20:21:48.037943Z'
+        '401':
+          description: 'Unauthorized: invalid or missing credentials'
+          content:
+            application/json:
+              example:
+                type: error
+                error:
+                  ref_id: fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                  message: 'Unauthorized: invalid or missing credentials'
+              schema:
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - error
+                    const: error
+                    title: Type
+                    description: Always 'error'.
+                    default: error
+                  error:
+                    allOf:
+                      - properties:
+                          ref_id:
+                            type: string
+                            title: Ref Id
+                            description: Reference ID for the error.
+                          message:
+                            type: string
+                            title: Message
+                            description: Human-readable message.
+                          detail:
+                            anyOf:
+                              - type: object
+                              - type: 'null'
+                            title: Detail
+                            description: Optional detail supporting the error.
+                        type: object
+                        required:
+                          - ref_id
+                          - message
+                        title: Error
+                        description: An error message.
+                    description: Error.
+                type: object
+                required:
+                  - error
+                title: ErrorResponse
+                description: Response object used for non-200 status codes.
+        '402':
+          description: 'Payment required: insufficient credit in account'
+          content:
+            application/json:
+              example:
+                type: error
+                error:
+                  ref_id: fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                  message: 'Payment required: insufficient credit in account'
+              schema:
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - error
+                    const: error
+                    title: Type
+                    description: Always 'error'.
+                    default: error
+                  error:
+                    allOf:
+                      - properties:
+                          ref_id:
+                            type: string
+                            title: Ref Id
+                            description: Reference ID for the error.
+                          message:
+                            type: string
+                            title: Message
+                            description: Human-readable message.
+                          detail:
+                            anyOf:
+                              - type: object
+                              - type: 'null'
+                            title: Detail
+                            description: Optional detail supporting the error.
+                        type: object
+                        required:
+                          - ref_id
+                          - message
+                        title: Error
+                        description: An error message.
+                    description: Error.
+                type: object
+                required:
+                  - error
+                title: ErrorResponse
+                description: Response object used for non-200 status codes.
+        '403':
+          description: 'Forbidden: invalid processor in request'
+          content:
+            application/json:
+              example:
+                type: error
+                error:
+                  ref_id: fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                  message: 'Forbidden: invalid processor in request'
+              schema:
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - error
+                    const: error
+                    title: Type
+                    description: Always 'error'.
+                    default: error
+                  error:
+                    allOf:
+                      - properties:
+                          ref_id:
+                            type: string
+                            title: Ref Id
+                            description: Reference ID for the error.
+                          message:
+                            type: string
+                            title: Message
+                            description: Human-readable message.
+                          detail:
+                            anyOf:
+                              - type: object
+                              - type: 'null'
+                            title: Detail
+                            description: Optional detail supporting the error.
+                        type: object
+                        required:
+                          - ref_id
+                          - message
+                        title: Error
+                        description: An error message.
+                    description: Error.
+                type: object
+                required:
+                  - error
+                title: ErrorResponse
+                description: Response object used for non-200 status codes.
+        '422':
+          description: 'Unprocessable content: request validation error'
+          content:
+            application/json:
+              example:
+                type: error
+                error:
+                  ref_id: fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                  message: 'Unprocessable content: request validation error'
+              schema:
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - error
+                    const: error
+                    title: Type
+                    description: Always 'error'.
+                    default: error
+                  error:
+                    allOf:
+                      - properties:
+                          ref_id:
+                            type: string
+                            title: Ref Id
+                            description: Reference ID for the error.
+                          message:
+                            type: string
+                            title: Message
+                            description: Human-readable message.
+                          detail:
+                            anyOf:
+                              - type: object
+                              - type: 'null'
+                            title: Detail
+                            description: Optional detail supporting the error.
+                        type: object
+                        required:
+                          - ref_id
+                          - message
+                        title: Error
+                        description: An error message.
+                    description: Error.
+                type: object
+                required:
+                  - error
+                title: ErrorResponse
+                description: Response object used for non-200 status codes.
+        '429':
+          description: 'Too many requests: quota temporarily exceeded'
+          content:
+            application/json:
+              example:
+                type: error
+                error:
+                  ref_id: fcb2b4f3-c75e-4186-87bc-caa1a8381331
+                  message: 'Too many requests: quota temporarily exceeded'
+              schema:
+                properties:
+                  type:
+                    type: string
+                    enum:
+                      - error
+                    const: error
+                    title: Type
+                    description: Always 'error'.
+                    default: error
+                  error:
+                    allOf:
+                      - properties:
+                          ref_id:
+                            type: string
+                            title: Ref Id
+                            description: Reference ID for the error.
+                          message:
+                            type: string
+                            title: Message
+                            description: Human-readable message.
+                          detail:
+                            anyOf:
+                              - type: object
+                              - type: 'null'
+                            title: Detail
+                            description: Optional detail supporting the error.
+                        type: object
+                        required:
+                          - ref_id
+                          - message
+                        title: Error
+                        description: An error message.
+                    description: Error.
+                type: object
+                required:
+                  - error
+                title: ErrorResponse
+                description: Response object used for non-200 status codes.
+      x-codeSamples:
+        - lang: Python
+          source: |-
+            from parallel import Parallel
+
+            client = Parallel(
+                api_key="My API Key",
+            )
+            task_run = client.task_run.create(
+                input="What was the GDP of France in 2023?",
+                processor="base",
+            )
+            print(task_run.run_id)

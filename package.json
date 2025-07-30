@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "build": "openapi-for-llms"
+  },
+  "devDependencies": {
+    "openapi-for-llms": "^0.0.2"
+  }
+}
