@@ -2,4 +2,4 @@ Goal: making an improved OpenAPI that is more agent-friendly to be browsed, then
 
 TODO:
 
-- flaredream support `CNAME`, deploy it
+- Flaredream support `CNAME`, deploy it
