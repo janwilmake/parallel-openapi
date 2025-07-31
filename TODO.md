@@ -2,5 +2,8 @@ Goal: making an improved OpenAPI that is more agent-friendly to be browsed, then
 
 TODO:
 
-- Flaredream support `CNAME`, deploy it
-- Add this button: [![](https://b.lmpify.com/Select_A_Context)](https://letmeprompt.com?q=https://parallel.oapis.org/%20%20give%20me%20urls:%20which%20files%20are%20relevant%20for%20...)
+- package: `llms-txt-to-readme` to also add links. Separate since im not sure this is what they want.
+- I need to use uithub with this one, but getting 403: https://github.com/shapleyai/parallel-sdk-internal-typescript, as well at https://uuithub.com/shapleyai/parallel-sdk-internal-typescript
+- Add `externalDocs` to every endpoint using direct url to .md on mintlify docs
+
+Share publicly and share with the team.
