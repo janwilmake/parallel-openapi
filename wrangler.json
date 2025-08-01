@@ -1,0 +1,9 @@
+{
+  "$schema": "https://unpkg.com/wrangler@latest/config-schema.json",
+  "name": "parallel-openapi",
+  "compatibility_date": "2025-06-29",
+  "dev": { "port": 3000 },
+  "logpush": true,
+  "assets": { "directory": "./" },
+  "routes": [{ "custom_domain": true, "pattern": "parallel.oapis.org" }]
+}
