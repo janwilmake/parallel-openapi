@@ -18,7 +18,7 @@ Unlike traditional search engines, the Search API is designed specifically for A
 
 Currently available in alpha with "base" and "pro" processors, the Search API offers different performance and result quality tiers. Rate limits are set at 1,000 requests per hour to ensure consistent performance across all users. This API is particularly valuable for building AI agents that need to gather and synthesize information from across the web.
 
-- [Search API operations](tags/Search API.yaml) All 'Search API' operations in one file
+- [Search API operations](tags/Search%20API.yaml) All 'Search API' operations in one file
 - [POST /alpha/search](operations/web_search_alpha_search_post.yaml): Execute web search with AI-native results
 
 ## Task API (Beta)
@@ -31,7 +31,7 @@ The Group API supports server-sent events (SSE) for real-time updates, enabling 
 
 This API is currently in beta and subject to change. It's designed for production use cases requiring high-volume task processing with enterprise-grade monitoring and reliability features.
 
-- [Task API (Beta) operations](tags/Task API (Beta).yaml) All 'Task API (Beta)' operations in one file
+- [Task API (Beta) operations](tags/Task%20API%20(Beta).yaml) All 'Task API (Beta)' operations in one file
 - [POST /v1beta/tasks/groups](operations/tasks_taskgroups_post_v1beta_tasks_groups_post.yaml): Create a task group for batch processing
 - [GET /v1beta/tasks/groups/{taskgroup_id}](operations/tasks_taskgroups_get_v1beta_tasks_groups__taskgroup_id__get.yaml): Get aggregated status across all runs in a task group
 - [GET /v1beta/tasks/groups/{taskgroup_id}/runs](operations/tasks_taskgroups_runs_get_v1beta_tasks_groups__taskgroup_id__runs_get.yaml): Stream task runs and their results from a task group
@@ -47,7 +47,7 @@ The Task API supports a progression from simple queries to complex structured ou
 
 Every Task Run result includes comprehensive "basis" information - citations, reasoning, excerpts, and confidence levels that support each output field. This transparency enables you to understand how the system arrived at its conclusions and assess the reliability of the output. The API enforces a rate limit of 2,000 requests per minute and follows a pay-per-use pricing model based on processor selection.
 
-- [Task API v1 operations](tags/Task API v1.yaml) All 'Task API v1' operations in one file
+- [Task API v1 operations](tags/Task%20API%20v1.yaml) All 'Task API v1' operations in one file
 - [POST /v1/tasks/runs](operations/tasks_runs_post_v1_tasks_runs_post.yaml): Create a new task run for structured web research
 - [GET /v1/tasks/runs/{run_id}](operations/tasks_runs_get_v1_tasks_runs__run_id__get.yaml): Retrieve current status of a task run
 - [GET /v1/tasks/runs/{run_id}/input](operations/tasks_runs_input_get_v1_tasks_runs__run_id__input_get.yaml): Retrieve the original input data for a task run
