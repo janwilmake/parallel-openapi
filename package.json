@@ -4,6 +4,6 @@
   },
   "devDependencies": {
     "llms-to-readme": "^1.0.0",
-    "openapi-for-llms": "^0.0.14"
+    "openapi-for-llms": "^0.0.15"
   }
 }
