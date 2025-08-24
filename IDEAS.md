@@ -3,7 +3,7 @@
 - Improving descriptions OpenAPI will automatically improve SDK
 - Table-friendly flat output as part of SDK or API. POC: https://github.com/janwilmake/parallel-flatten
 - Either increase taskresult-poll timeout from 10 minutes to timeout of API (60 minutes) AND add default and max timeout CLEARLY to OpenAPI (and with that, SDK)
-- Add ways to use SSE and Webhooks (how to structure OpenAPI to generate this into 'beta' from Stainless?)
+- Add ways to use SSE and Webhooks (is it possible to structure OpenAPI to generate this into 'beta' from Stainless?)
 - Stainless adding type-stubs in a single file (similar to [these ones](https://github.com/parallel-web/parallel-cookbook/blob/main/typescript-sdk-types.d.ts) into Typescript, also needed for Python) for easy one-file LLM context: configurable or https://www.stainless.com/docs/guides/add-custom-code. Besides having a single file, it'd also be great to have a file like this for every operation or OpenAPI tag.
 - Have a way to refer to docs from OpenAPI. See [OpenAPI docs-reference strategy](#openapi-docs-reference-strategies)
 
